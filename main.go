@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bmapping-api/models"
 	"flag"
 	"fmt"
 	"log"
@@ -11,7 +12,6 @@ import (
 	"github.com/go-xorm/xorm"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
-	_ "github.com/mattn/go-sqlite3"
 	configutil "github.com/pangpanglabs/goutils/config"
 	"github.com/pangpanglabs/goutils/echomiddleware"
 	"github.com/pangpanglabs/goutils/echotpl"
@@ -29,7 +29,7 @@ func main() {
 	if err := configutil.Read(*appEnv, &c); err != nil {
 		panic(err)
 	}
-
+	fmt.Println(*connEnv)
 	fmt.Println(c)
 	db, err := initDB(c.Database.Driver, *connEnv)
 	if err != nil {
@@ -39,7 +39,7 @@ func main() {
 
 	e := echo.New()
 
-	controllers.ElandStoreApiController{}.Init(e.Group("/api/elandStore"))
+	controllers.ElandStoreApiController{}.Init(e.Group("/v1/eland/store"))
 
 	e.Pre(middleware.RemoveTrailingSlash())
 	e.Use(middleware.Recover())
@@ -67,7 +67,7 @@ func initDB(driver, connection string) (*xorm.Engine, error) {
 		return nil, err
 	}
 
-	// db.Sync(new(models.Discount))
+	db.Sync(new(models.ElandStore))
 	return db, nil
 }
 

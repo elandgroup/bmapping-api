@@ -1,14 +1,13 @@
 package controllers
 
 import (
+	"bmapping-api/factory"
+	"bmapping-api/models"
 	"net/http"
 	"strconv"
 
-	"bmapping-api/factory"
-	"bmapping-api/models"
-
 	"github.com/labstack/echo"
-    "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 )
 
 type ElandStoreApiController struct {
@@ -20,6 +19,29 @@ func (c ElandStoreApiController) Init(g *echo.Group) {
 	g.GET("/:id", c.GetOne)
 	g.PUT("/:id", c.Update)
 }
+
+func (e ElandStoreApiController) Create(c echo.Context) error {
+	status := c.Param("status")
+	switch status {
+	case "batch":
+		return e.InsertMany(c)
+	default:
+		return e.InsertOne(c)
+	}
+}
+
+func (ElandStoreApiController) InsertMany(c echo.Context) error {
+	v := make([]models.ElandStore, 0)
+	if err := c.Bind(&v); err != nil {
+		return ReturnApiFail(c, http.StatusBadRequest, ApiErrorParameter, err)
+	}
+	if err := (models.ElandStore{}).InsertMany(c.Request().Context(), &v); err != nil {
+		return ReturnApiFail(c, http.StatusInternalServerError, ApiErrorDB, err)
+	}
+
+	return ReturnApiSucc(c, http.StatusOK, make([]interface{}, 0))
+}
+
 func (ElandStoreApiController) GetAll(c echo.Context) error {
 	var v SearchInput
 	if err := c.Bind(&v); err != nil {
@@ -44,36 +66,32 @@ func (ElandStoreApiController) GetAll(c echo.Context) error {
 	}
 
 	factory.BehaviorLogger(c.Request().Context()).
-        WithCallURLInfo(http.MethodGet, "https://play.google.com/books", nil, 200).
-        WithBizAttrs(map[string]interface{}{
-          "totalCount": totalCount,
-          "itemCount":  len(items),
-        }).
-        Log("SearchComplete")
+		WithCallURLInfo(http.MethodGet, "https://play.google.com/books", nil, 200).
+		WithBizAttrs(map[string]interface{}{
+			"totalCount": totalCount,
+			"itemCount":  len(items),
+		}).
+		Log("SearchComplete")
 
-    return ReturnApiSucc(c, http.StatusOK, ArrayResult{
-        TotalCount: totalCount,
-        Items:      items,
-    })
+	return ReturnApiSucc(c, http.StatusOK, ArrayResult{
+		TotalCount: totalCount,
+		Items:      items,
+	})
 }
 
-func (ElandStoreApiController) Create(c echo.Context) error {
-	var v ElandStoreInput
+func (ElandStoreApiController) InsertOne(c echo.Context) error {
+	var v models.ElandStore
 	if err := c.Bind(&v); err != nil {
 		return ReturnApiFail(c, http.StatusBadRequest, ApiErrorParameter, err)
 	}
 	if err := c.Validate(&v); err != nil {
 		return ReturnApiFail(c, http.StatusBadRequest, ApiErrorParameter, err)
 	}
-	eland_store, err := v.ToModel()
-	if err != nil {
-		return ReturnApiFail(c, http.StatusBadRequest, ApiErrorParameter, err)
-	}
-	if _, err := eland_store.Create(c.Request().Context()); err != nil {
+	if err := (&v).InsertOne(c.Request().Context()); err != nil {
 		return ReturnApiFail(c, http.StatusInternalServerError, ApiErrorDB, err)
 	}
 
-	return ReturnApiSucc(c, http.StatusOK, eland_store)
+	return ReturnApiSucc(c, http.StatusOK, v)
 }
 
 func (ElandStoreApiController) GetOne(c echo.Context) error {
@@ -81,11 +99,11 @@ func (ElandStoreApiController) GetOne(c echo.Context) error {
 	if err != nil {
 		return ReturnApiFail(c, http.StatusBadRequest, ApiErrorParameter, err)
 	}
-	v, err := models.ElandStore{}.GetById(c.Request().Context(), id)
+	has, v, err := models.ElandStore{}.GetById(c.Request().Context(), id)
 	if err != nil {
 		return ReturnApiFail(c, http.StatusInternalServerError, ApiErrorDB, err)
 	}
-	if v == nil {
+	if !has {
 		return ReturnApiFail(c, http.StatusNotFound, ApiErrorNotFound, nil)
 	}
 
@@ -93,15 +111,11 @@ func (ElandStoreApiController) GetOne(c echo.Context) error {
 }
 
 func (ElandStoreApiController) Update(c echo.Context) error {
-	var v ElandStoreInput
+	var v models.ElandStore
 	if err := c.Bind(&v); err != nil {
 		return ReturnApiFail(c, http.StatusBadRequest, ApiErrorParameter, err)
 	}
 	if err := c.Validate(&v); err != nil {
-		return ReturnApiFail(c, http.StatusBadRequest, ApiErrorParameter, err)
-	}
-	eland_store, err := v.ToModel()
-	if err != nil {
 		return ReturnApiFail(c, http.StatusBadRequest, ApiErrorParameter, err)
 	}
 
@@ -109,10 +123,10 @@ func (ElandStoreApiController) Update(c echo.Context) error {
 	if err != nil {
 		return ReturnApiFail(c, http.StatusBadRequest, ApiErrorParameter, err)
 	}
-	eland_store.Id = id
-	if err := eland_store.Update(c.Request().Context()); err != nil {
+	v.Id = id
+	if err := (&v).Update(c.Request().Context()); err != nil {
 		return ReturnApiFail(c, http.StatusInternalServerError, ApiErrorDB, err)
 	}
 
-	return ReturnApiSucc(c, http.StatusOK, eland_store)
+	return ReturnApiSucc(c, http.StatusOK, v)
 }

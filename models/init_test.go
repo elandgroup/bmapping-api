@@ -2,23 +2,20 @@ package models
 
 import (
 	"context"
-	"runtime"
+	"os"
 
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/go-xorm/xorm"
-	_ "github.com/mattn/go-sqlite3"
 	"github.com/pangpanglabs/goutils/echomiddleware"
 )
 
 var ctx context.Context
 
 func init() {
-	runtime.GOMAXPROCS(1)
-	xormEngine, err := xorm.NewEngine("sqlite3", ":memory:")
+	xormEngine, err := xorm.NewEngine("mysql", os.Getenv("BMAPPING_ENV"))
 	if err != nil {
 		panic(err)
 	}
 	xormEngine.ShowSQL(true)
-	xormEngine.Sync(new(ElandStore))
-
 	ctx = context.WithValue(context.Background(), echomiddleware.ContextDBName, xormEngine.NewSession())
 }
