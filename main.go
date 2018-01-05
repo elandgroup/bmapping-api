@@ -40,6 +40,7 @@ func main() {
 	e := echo.New()
 
 	controllers.ElandStoreGroupApiController{}.Init(e.Group("/v1/eland/storegroups"))
+	controllers.GreenStoreGroupApiController{}.Init(e.Group("/v3/green/stores"))
 
 	e.Pre(middleware.RemoveTrailingSlash())
 	e.Use(middleware.Recover())
