@@ -1,10 +1,8 @@
 package models
 
-import (
-	"time"
-)
+import "time"
 
-type ElandStore struct {
+type GreenStore struct {
 	Id          int64
 	GroupId     int64
 	Code        string
