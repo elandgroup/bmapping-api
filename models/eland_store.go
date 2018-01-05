@@ -9,7 +9,7 @@ import (
 	"bmapping-api/factory"
 )
 
-type ElandStore struct {
+type ElandStoreGroup struct {
 	Id        int64  `json:"id" query:"id" xorm:"pk autoincr 'id'"`
 	GroupCode string `json:"groupCode" query:"groupCode" xorm:"VARCHAR(4) unique(group_code_code_country_id) 'group_code'"`
 	Code      string `json:"code" query:"code" xorm:"VARCHAR(4) unique(group_code_code_country_id) 'code'"`
@@ -19,15 +19,15 @@ type ElandStore struct {
 	UpdatedAt string `json:"updatedAt" query:"updatedAt" xorm:"updated"`
 }
 
-func (ElandStore) InsertMany(ctx context.Context, elandStore *[]ElandStore) (err error) {
-	row, err := factory.DB(ctx).Insert(elandStore)
+func (ElandStoreGroup) InsertMany(ctx context.Context, elandStoreGroup *[]ElandStoreGroup) (err error) {
+	row, err := factory.DB(ctx).Insert(elandStoreGroup)
 	if int(row) == 0 {
 		err = errors.New("no data has changed.")
 		return
 	}
 	return
 }
-func (d *ElandStore) InsertOne(ctx context.Context) (err error) {
+func (d *ElandStoreGroup) InsertOne(ctx context.Context) (err error) {
 	row, err := factory.DB(ctx).InsertOne(d)
 	if int(row) == 0 {
 		err = errors.New("no data has changed.")
@@ -36,12 +36,12 @@ func (d *ElandStore) InsertOne(ctx context.Context) (err error) {
 	return
 }
 
-func (ElandStore) GetById(ctx context.Context, id int64) (has bool, elandStore *ElandStore, err error) {
-	elandStore = &ElandStore{}
-	has, err = factory.DB(ctx).ID(id).Get(elandStore)
+func (ElandStoreGroup) GetById(ctx context.Context, id int64) (has bool, elandStoreGroup *ElandStoreGroup, err error) {
+	elandStoreGroup = &ElandStoreGroup{}
+	has, err = factory.DB(ctx).ID(id).Get(elandStoreGroup)
 	return
 }
-func (ElandStore) GetAll(ctx context.Context, sortby, order []string, offset, limit int) (totalCount int64, items []ElandStore, err error) {
+func (ElandStoreGroup) GetAll(ctx context.Context, sortby, order []string, offset, limit int) (totalCount int64, items []ElandStoreGroup, err error) {
 	queryBuilder := func() *xorm.Session {
 		q := factory.DB(ctx)
 		if err := setSortOrder(q, sortby, order); err != nil {
@@ -52,7 +52,7 @@ func (ElandStore) GetAll(ctx context.Context, sortby, order []string, offset, li
 
 	errc := make(chan error)
 	go func() {
-		v, err := queryBuilder().Count(&ElandStore{})
+		v, err := queryBuilder().Count(&ElandStoreGroup{})
 		if err != nil {
 			errc <- err
 			return
@@ -63,7 +63,7 @@ func (ElandStore) GetAll(ctx context.Context, sortby, order []string, offset, li
 	}()
 
 	go func() {
-		v, err := queryBuilder().Count(&ElandStore{})
+		v, err := queryBuilder().Count(&ElandStoreGroup{})
 		if err != nil {
 			errc <- err
 			return
@@ -85,7 +85,7 @@ func (ElandStore) GetAll(ctx context.Context, sortby, order []string, offset, li
 	}
 	return
 }
-func (d *ElandStore) Update(ctx context.Context) (err error) {
+func (d *ElandStoreGroup) Update(ctx context.Context) (err error) {
 	row, err := factory.DB(ctx).ID(d.Id).Update(d)
 	if int(row) == 0 {
 		err = errors.New("no data has changed.")
@@ -94,8 +94,8 @@ func (d *ElandStore) Update(ctx context.Context) (err error) {
 	return
 }
 
-func (ElandStore) Delete(ctx context.Context, id int64) (err error) {
-	row, err := factory.DB(ctx).ID(id).Delete(&ElandStore{})
+func (ElandStoreGroup) Delete(ctx context.Context, id int64) (err error) {
+	row, err := factory.DB(ctx).ID(id).Delete(&ElandStoreGroup{})
 	if int(row) == 0 {
 		err = errors.New("no data has changed.")
 		return
