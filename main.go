@@ -67,7 +67,14 @@ func initDB(driver, connection string) (*xorm.Engine, error) {
 		return nil, err
 	}
 
-	db.Sync(new(models.ElandStoreGroup))
+	db.Sync(new(models.ElandStoreGroup),
+		new(models.ElandStore),
+		new(models.ElandMappingStoreIpay),
+		new(models.GreenStoreGroup),
+		new(models.GreenStore),
+		new(models.GreenMappingStoreIpay),
+		new(models.IpayType),
+	)
 	return db, nil
 }
 
