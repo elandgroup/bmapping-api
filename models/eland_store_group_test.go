@@ -8,33 +8,33 @@ import (
 )
 
 func Test_ElandStore_InsertMany(t *testing.T) {
-	d := ElandStore{
+	d := ElandStoreGroup{
 		GroupCode: "test_01",
 		Code:      "test_01",
 		CountryId: int64(1),
 		Name:      "test_01",
 	}
-	var stores []ElandStore
+	var stores []ElandStoreGroup
 	stores = append(stores, d)
 
-	err := (ElandStore{}).InsertMany(ctx, &stores)
+	err := (ElandStoreGroup{}).InsertMany(ctx, &stores)
 	test.Ok(t, err)
 }
 
 func Test_ElandStore_GetById(t *testing.T) {
-	has, elandStore, err := ElandStore{}.GetById(ctx, 1)
-	fmt.Println(has, elandStore)
+	has, elandStoreGroup, err := ElandStoreGroup{}.GetById(ctx, 1)
+	fmt.Println(has, elandStoreGroup)
 	test.Ok(t, err)
 }
 
 func Test_ElandStore_GetAll(t *testing.T) {
-	count, items, err := ElandStore{}.GetAll(ctx, nil, nil, 0, 2)
+	count, items, err := ElandStoreGroup{}.GetAll(ctx, nil, nil, 0, 2)
 	fmt.Println(count, items)
 	test.Ok(t, err)
 }
 
 func Test_ElandStore_Update(t *testing.T) {
-	d := &ElandStore{
+	d := &ElandStoreGroup{
 		Id:   1,
 		Name: "test_03",
 	}
@@ -42,7 +42,7 @@ func Test_ElandStore_Update(t *testing.T) {
 	test.Ok(t, err)
 }
 func Test_ElandStore_InsertOne(t *testing.T) {
-	d := &ElandStore{
+	d := &ElandStoreGroup{
 		GroupCode: "test_01",
 		Code:      "test_01",
 		CountryId: int64(2),
@@ -52,6 +52,6 @@ func Test_ElandStore_InsertOne(t *testing.T) {
 	test.Ok(t, err)
 }
 func Test_ElandStore_Delete(t *testing.T) {
-	err := ElandStore{}.Delete(ctx, 3)
+	err := ElandStoreGroup{}.Delete(ctx, 3)
 	test.Ok(t, err)
 }

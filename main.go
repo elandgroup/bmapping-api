@@ -39,7 +39,7 @@ func main() {
 
 	e := echo.New()
 
-	controllers.ElandStoreApiController{}.Init(e.Group("/v1/eland/store"))
+	controllers.ElandStoreGroupApiController{}.Init(e.Group("/v1/eland/storegroups"))
 
 	e.Pre(middleware.RemoveTrailingSlash())
 	e.Use(middleware.Recover())
@@ -67,7 +67,7 @@ func initDB(driver, connection string) (*xorm.Engine, error) {
 		return nil, err
 	}
 
-	db.Sync(new(models.ElandStore))
+	db.Sync(new(models.ElandStoreGroup))
 	return db, nil
 }
 
