@@ -8,25 +8,25 @@ import (
 	"github.com/labstack/echo"
 )
 
-type GreenStoreGroupApiController struct {
+type GreenStoreApiController struct {
 }
 
-func (c GreenStoreGroupApiController) Init(g *echo.Group) {
+func (c GreenStoreApiController) Init(g *echo.Group) {
 	g.GET("", c.GetAll)
 }
 
-func (e GreenStoreGroupApiController) GetAll(c echo.Context) error {
+func (e GreenStoreApiController) GetAll(c echo.Context) error {
 	status := c.QueryParam("status")
-	var err error
 	switch status {
-	case "e_id":
-		return e.GetEIdByCode(c)
+	case "all":
+
 	default:
-		return ReturnApiFail(c, http.StatusBadRequest, ApiErrorParameter, err)
+		return e.GetEIdByCode(c)
 	}
+	return ReturnApiFail(c, http.StatusBadRequest, ApiErrorParameter, nil)
 }
 
-func (GreenStoreGroupApiController) GetEIdByCode(c echo.Context) error {
+func (GreenStoreApiController) GetEIdByCode(c echo.Context) error {
 	code := c.QueryParam("code")
 	ipayTypeId, err := strconv.ParseInt(c.QueryParam("ipay_type_id"), 10, 64)
 	if err != nil {

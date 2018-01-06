@@ -10,6 +10,50 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+type ElandStoreApiController struct {
+}
+
+func (c ElandStoreApiController) Init(g *echo.Group) {
+	g.GET("", c.Get)
+	// g.POST("", c.Create)
+	// g.GET("/:id", c.GetOne)
+	// g.PUT("/:id", c.Update)
+}
+
+func (d ElandStoreApiController) Get(c echo.Context) error {
+	status := c.QueryParam("status")
+	switch status {
+	case "all":
+		return d.GetAll(c)
+	default:
+		return d.GetEIdByThrArgs(c)
+	}
+	return ReturnApiFail(c, http.StatusBadRequest, ApiErrorParameter, nil)
+}
+func (ElandStoreApiController) GetAll(c echo.Context) error {
+	return nil
+}
+func (ElandStoreApiController) GetEIdByThrArgs(c echo.Context) error {
+	code := c.QueryParam("code")
+	group_code := c.QueryParam("group_code")
+	country_id, err := strconv.ParseInt(c.QueryParam("country_id"), 10, 64)
+	if err != nil {
+		return ReturnApiFail(c, http.StatusBadRequest, ApiErrorParameter, err)
+	}
+	ipayTypeId, err := strconv.ParseInt(c.QueryParam("ipay_type_id"), 10, 64)
+	if err != nil {
+		return ReturnApiFail(c, http.StatusBadRequest, ApiErrorParameter, err)
+	}
+	has, eId, err := models.GetEIdByThrArgs(c.Request().Context(), group_code, code, country_id, ipayTypeId)
+	if err != nil {
+		return ReturnApiFail(c, http.StatusInternalServerError, ApiErrorDB, err)
+	}
+	if !has {
+		return ReturnApiFail(c, http.StatusNotFound, ApiErrorNotFound, nil)
+	}
+	return ReturnApiSucc(c, http.StatusOK, eId)
+}
+
 type ElandStoreGroupApiController struct {
 }
 
@@ -129,22 +173,4 @@ func (ElandStoreGroupApiController) Update(c echo.Context) error {
 	}
 
 	return ReturnApiSucc(c, http.StatusOK, v)
-}
-
-func (ElandStoreGroupApiController) GetEIdByThrArgs(c echo.Context) error {
-	code := c.QueryParam("code")
-	group_code := c.QueryParam("group_code")
-	country_id, err := strconv.ParseInt(c.QueryParam("country_id"), 10, 64)
-	ipayTypeId, err := strconv.ParseInt(c.QueryParam("ipay_type_id"), 10, 64)
-	if err != nil {
-		return ReturnApiFail(c, http.StatusBadRequest, ApiErrorParameter, err)
-	}
-	has, eId, err := models.GetEIdByThrArgs(c.Request().Context(), group_code, code, country_id, ipayTypeId)
-	if err != nil {
-		return ReturnApiFail(c, http.StatusInternalServerError, ApiErrorDB, err)
-	}
-	if !has {
-		return ReturnApiFail(c, http.StatusNotFound, ApiErrorNotFound, nil)
-	}
-	return ReturnApiSucc(c, http.StatusOK, eId)
 }
