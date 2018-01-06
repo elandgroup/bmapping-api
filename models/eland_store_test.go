@@ -4,8 +4,16 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/pangpanglabs/goutils/test"
+	"github.com/relax-space/go-kit/test"
 )
+
+func Test_ElandStore_GetEIdByThrArgs(t *testing.T) {
+	has, eId, err := GetEIdByThrArgs(ctx, "A001", "code1234", 9, 1)
+	fmt.Println(has, eId)
+	test.Ok(t, err)
+}
+
+//group
 
 func Test_ElandStore_InsertMany(t *testing.T) {
 	d := ElandStoreGroup{
@@ -51,11 +59,5 @@ func Test_ElandStore_InsertOne(t *testing.T) {
 }
 func Test_ElandStore_Delete(t *testing.T) {
 	err := ElandStoreGroup{}.Delete(ctx, 3)
-	test.Ok(t, err)
-}
-
-func Test_ElandStore_GetEIdByThrArgs(t *testing.T) {
-	has, eId, err := GetEIdByThrArgs(ctx, "A001", "code1234", 9, 1)
-	fmt.Println(has, eId)
 	test.Ok(t, err)
 }

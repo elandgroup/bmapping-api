@@ -3,7 +3,6 @@ package main
 import (
 	"bmapping-api/models"
 	"flag"
-	"fmt"
 	"log"
 	"os"
 
@@ -29,8 +28,6 @@ func main() {
 	if err := configutil.Read(*appEnv, &c); err != nil {
 		panic(err)
 	}
-	fmt.Println(*connEnv)
-	fmt.Println(c)
 	db, err := initDB(c.Database.Driver, *connEnv)
 	if err != nil {
 		panic(err)
@@ -38,14 +35,16 @@ func main() {
 	defer db.Close()
 
 	e := echo.New()
-
-	controllers.ElandStoreGroupApiController{}.Init(e.Group("/v1/eland/storegroups"))
-	controllers.GreenStoreGroupApiController{}.Init(e.Group("/v3/green/stores"))
+	//eland
+	controllers.ElandStoreGroupApiController{}.Init(e.Group("/v3/eland/storegroups"))
+	controllers.ElandStoreApiController{}.Init(e.Group("/v3/eland/stores"))
+	//green
+	controllers.GreenStoreApiController{}.Init(e.Group("/v3/green/stores"))
 
 	e.Pre(middleware.RemoveTrailingSlash())
 	e.Use(middleware.Recover())
 	e.Use(middleware.CORS())
-	// e.Use(middleware.Logger())
+	e.Use(middleware.Logger())
 
 	e.Use(middleware.RequestID())
 	e.Use(echomiddleware.ContextLogger())
@@ -67,7 +66,6 @@ func initDB(driver, connection string) (*xorm.Engine, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	db.Sync(new(models.ElandStoreGroup),
 		new(models.ElandStore),
 		new(models.ElandMappingStoreIpay),

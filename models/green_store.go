@@ -28,3 +28,20 @@ func GetEIdByCode(ctx context.Context, code string, ipayTypeId int64) (has bool,
 	eId = greenMapping.EId
 	return
 }
+
+type GreenMappingStoreIpay struct {
+	Id         int64
+	StoreId    int64
+	IpayTypeId int64
+	EId        int64
+	CreatedAt  time.Time `xorm:"created"`
+	UpdatedAt  time.Time `xorm:"updated"`
+}
+
+type GreenStoreGroup struct {
+	Id        int64     `json:"id" query:"id" xorm:"pk autoincr 'id'"`
+	Code      string    `json:"code" query:"code" xorm:"VARCHAR(4) unique 'code'"`
+	Name      string    `json:"name" query:"name"`
+	CreatedAt time.Time `json:"createdAt" query:"createdAt" xorm:"created"`
+	UpdatedAt time.Time `json:"updatedAt" query:"updatedAt" xorm:"updated"`
+}
