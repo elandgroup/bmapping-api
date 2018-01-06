@@ -130,3 +130,21 @@ func (ElandStoreGroupApiController) Update(c echo.Context) error {
 
 	return ReturnApiSucc(c, http.StatusOK, v)
 }
+
+func (ElandStoreGroupApiController) GetEIdByThrArgs(c echo.Context) error {
+	code := c.QueryParam("code")
+	group_code := c.QueryParam("group_code")
+	country_id, err := strconv.ParseInt(c.QueryParam("country_id"), 10, 64)
+	ipayTypeId, err := strconv.ParseInt(c.QueryParam("ipay_type_id"), 10, 64)
+	if err != nil {
+		return ReturnApiFail(c, http.StatusBadRequest, ApiErrorParameter, err)
+	}
+	has, eId, err := models.GetEIdByThrArgs(c.Request().Context(), group_code, code, country_id, ipayTypeId)
+	if err != nil {
+		return ReturnApiFail(c, http.StatusInternalServerError, ApiErrorDB, err)
+	}
+	if !has {
+		return ReturnApiFail(c, http.StatusNotFound, ApiErrorNotFound, nil)
+	}
+	return ReturnApiSucc(c, http.StatusOK, eId)
+}
