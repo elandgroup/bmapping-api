@@ -5,6 +5,7 @@ import (
 	"flag"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/asaskevich/govalidator"
 	_ "github.com/go-sql-driver/mysql"
@@ -13,7 +14,8 @@ import (
 	"github.com/labstack/echo/middleware"
 	configutil "github.com/pangpanglabs/goutils/config"
 	"github.com/pangpanglabs/goutils/echomiddleware"
-	"github.com/pangpanglabs/goutils/echotpl"
+	cache "github.com/patrickmn/go-cache"
+	relaxmid "github.com/relax-space/go-kitt/echomiddleware"
 
 	"bmapping-api/controllers"
 	// "bmapping-api/models"
@@ -34,6 +36,11 @@ func main() {
 	}
 	defer db.Close()
 
+	localCache := cache.New(cache.NoExpiration, 0)
+	configMap := map[string]interface{}{
+		"|cache": localCache,
+	}
+
 	e := echo.New()
 	//eland
 	controllers.ElandStoreGroupApiController{}.Init(e.Group("/v3/eland/storegroups"))
@@ -48,10 +55,25 @@ func main() {
 
 	e.Use(middleware.RequestID())
 	e.Use(echomiddleware.ContextLogger())
+	e.Use(relaxmid.ContextConfig(configMap))
 	e.Use(echomiddleware.ContextDB(c.Service, db, echomiddleware.KafkaConfig(c.Database.Logger.Kafka)))
 	e.Use(echomiddleware.BehaviorLogger(c.Service, echomiddleware.KafkaConfig(c.BehaviorLog.Kafka)))
+	e.Use(middleware.JWTWithConfig(middleware.JWTConfig{
+		SigningKey: []byte(os.Getenv("JWT_SECRET")),
+		Skipper: func(c echo.Context) bool {
+			ignore := []string{
+				"/ping",
+			}
+			for _, i := range ignore {
+				if strings.HasPrefix(c.Request().URL.Path, i) {
+					return true
+				}
+			}
 
-	e.Renderer = echotpl.New()
+			return false
+		},
+	}))
+	//e.Renderer = echotpl.New()
 	e.Validator = &Validator{}
 
 	e.Debug = c.Debug
