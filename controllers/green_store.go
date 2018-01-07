@@ -14,11 +14,7 @@ import (
 type GreenStoreApiController struct {
 }
 
-func (c GreenStoreApiController) Init(g *echo.Group) {
-	g.GET("", c.GetAll)
-}
-
-func (e GreenStoreApiController) GetAll(c echo.Context) error {
+func (e GreenStoreApiController) Get(c echo.Context) error {
 	status := c.QueryParam("status")
 	switch status {
 	case "all":
