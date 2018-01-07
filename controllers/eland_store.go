@@ -16,13 +16,6 @@ import (
 type ElandStoreApiController struct {
 }
 
-func (c ElandStoreApiController) Init(g *echo.Group) {
-	g.GET("", c.Get)
-	// g.POST("", c.Create)
-	// g.GET("/:id", c.GetOne)
-	// g.PUT("/:id", c.Update)
-}
-
 func (g ElandStoreApiController) Get(c echo.Context) error {
 	status := c.QueryParam("status")
 	switch status {
