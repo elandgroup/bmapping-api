@@ -7,9 +7,9 @@ import (
 	"github.com/relax-space/go-kit/test"
 )
 
-func Test_ElandStore_GetEIdByThrArgs(t *testing.T) {
-	has, eId, err := GetEIdByThrArgs(ctx, "A001", "code1234", 9, 1)
-	fmt.Println(has, eId)
+func Test_ElandStore_GetEId(t *testing.T) {
+	has, eId, store, err := GetEIdByThrArgs(ctx, "AA01", "CR00", 2, 1)
+	fmt.Println(has, eId, *store)
 	test.Ok(t, err)
 }
 

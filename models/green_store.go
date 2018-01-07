@@ -13,19 +13,28 @@ type GreenStore struct {
 	Name        string    `json:"name" query:"name"`
 	LogoUrl     string    `json:"logoUrl" query:"logoUrl"`
 	QrUrl       string    `json:"qrUry" query:"qrUry"`
-	Description string    `josn:"description" query:"description"`
-	CreatedAt   time.Time `xorm:"created" query:"createdAt" xorm:"created"`
-	UpdatedAt   time.Time `xorm:"updated" query:"updateAt" xorm:"created"`
+	Description string    `json:"description" query:"description"`
+	CreatedAt   time.Time `json:"createAt" query:"createdAt" xorm:"created"`
+	UpdatedAt   time.Time `json:"updateAt" query:"updateAt" xorm:"updated"`
 }
 
-func GetEIdByCode(ctx context.Context, code string, ipayTypeId int64) (has bool, eId int64, err error) {
-	var greenMapping GreenMappingStoreIpay
+func GetEIdByCode(ctx context.Context, code string, ipayTypeId int64) (has bool, eId int64, greenStore *GreenStore, err error) {
+	var bizStore struct {
+		GreenStore *GreenStore `json:"greenStore" xorm:"extends"`
+		EId        int64       `json:"eId"`
+	}
 	has, err = factory.DB(ctx).Table("green_store").Alias("a").
-		Select("b.e_id").
+		Select(`b.e_id,
+			a.name,
+			a.logo_url,
+			a.qr_url,
+			a.code
+			`).
 		Join("inner", []string{"green_mapping_store_ipay", "b"}, "a.id=b.store_id").
 		Where("a.code=?", code).And("b.ipay_type_id=?", ipayTypeId).
-		Get(&greenMapping)
-	eId = greenMapping.EId
+		Get(&bizStore)
+	eId = bizStore.EId
+	greenStore = bizStore.GreenStore
 	return
 }
 
