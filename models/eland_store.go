@@ -10,26 +10,37 @@ import (
 )
 
 type ElandStore struct {
-	Id          int64
-	GroupId     int64
-	Code        string
-	Name        string
-	LogoUrl     string
-	QrUrl       string
-	Description string
-	CreatedAt   time.Time `xorm:"created"`
-	UpdatedAt   time.Time `xorm:"updated"`
+	Id          int64     `json:"id"`
+	GroupId     int64     `json:"groupId"`
+	Code        string    `json:"codeId"`
+	Name        string    `json:"name"`
+	LogoUrl     string    `json:"logoUrl"`
+	QrUrl       string    `json:"qrUrl"`
+	Description string    `json:"description"`
+	CreatedAt   time.Time `json:"createdAt" xorm:"created"`
+	UpdatedAt   time.Time `json:"updatedAt" xorm:"updated"`
 }
 
-func GetEIdByThrArgs(ctx context.Context, group_code string, code string, country_id int64, ipayTypeId int64) (has bool, eId int64, err error) {
-	var ElandMapping ElandMappingStoreIpay
+func GetEIdByThrArgs(ctx context.Context, group_code string, code string,
+	country_id int64, ipayTypeId int64) (has bool, eId int64, elandStore *ElandStore, err error) {
+	var bizStore struct {
+		ElandStore *ElandStore `json:"elandStore" xorm:"extends"`
+		EId        int64       `json:"eId"`
+	}
 	has, err = factory.DB(ctx).Table("eland_mapping_store_ipay").Alias("a").
-		Select("a.e_id").
+		Select(`
+			a.e_id,
+			b.name,
+			b.logo_url,
+			b.qr_url,
+			b.code
+			`).
 		Join("inner", []string{"eland_store", "b"}, "a.store_id=b.id").
 		Join("inner", []string{"eland_store_group", "c"}, "b.group_id=c.id").
 		Where("b.code=?", code).And("c.country_id=?", country_id).And("c.code=?", group_code).And("a.ipay_type_id=?", ipayTypeId).
-		Get(&ElandMapping)
-	eId = ElandMapping.EId
+		Get(&bizStore)
+	eId = bizStore.EId
+	elandStore = bizStore.ElandStore
 	return
 }
 
