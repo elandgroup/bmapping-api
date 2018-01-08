@@ -44,6 +44,7 @@ func main() {
 	e := echo.New()
 
 	controllers.TenancyStoreApiController{}.Init(e.Group("/v3/stores"))
+	controllers.IPayTypeApiController{}.Init(e.Group("/v3/admin/ipaytype"))
 
 	e.Pre(middleware.RemoveTrailingSlash())
 	e.Use(middleware.Recover())

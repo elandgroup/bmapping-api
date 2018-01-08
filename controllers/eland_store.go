@@ -117,7 +117,7 @@ func (c ElandStoreGroupApiController) Init(g *echo.Group) {
 }
 
 func (e ElandStoreGroupApiController) Create(c echo.Context) error {
-	status := c.Param("status")
+	status := c.QueryParam("status")
 	switch status {
 	case "batch":
 		return e.InsertMany(c)
