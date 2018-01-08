@@ -60,6 +60,7 @@ func main() {
 		Skipper: func(c echo.Context) bool {
 			ignore := []string{
 				"/ping",
+				"/v3/stores",
 			}
 			for _, i := range ignore {
 				if strings.HasPrefix(c.Request().URL.Path, i) {
