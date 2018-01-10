@@ -87,13 +87,17 @@ func (GreenStoreGroup) GetAll(ctx context.Context, sortby, order []string, offse
 
 	errc := make(chan error)
 	go func() {
-		V, err := queryBuilder().Count(&GreenStoreGroup{})
+		v, err := queryBuilder().Count(&GreenStoreGroup{})
 		if err != nil {
 			errc <- err
 			return
 		}
-		totalCount = V
+		totalCount = v
+		errc <- nil
 
+	}()
+
+	go func() {
 		if err := queryBuilder().Limit(limit, offset).Find(&items); err != nil {
 			errc <- err
 			return
