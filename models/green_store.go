@@ -3,7 +3,10 @@ package models
 import (
 	"bmapping-api/factory"
 	"context"
+	"errors"
 	"time"
+
+	"github.com/go-xorm/xorm"
 )
 
 type GreenStore struct {
@@ -53,4 +56,80 @@ type GreenStoreGroup struct {
 	Name      string    `json:"name" query:"name"`
 	CreatedAt time.Time `json:"createdAt" query:"createdAt" xorm:"created"`
 	UpdatedAt time.Time `json:"updatedAt" query:"updatedAt" xorm:"updated"`
+}
+
+func (GreenStoreGroup) InsertMany(ctx context.Context, greenStoreGroup *[]GreenStoreGroup) (err error) {
+	row, err := factory.DB(ctx).Insert(greenStoreGroup)
+	if int(row) == 0 {
+		err = errors.New("no data has changed.")
+		return
+	}
+	return
+}
+
+func (t *GreenStoreGroup) InsertOne(ctx context.Context) (err error) {
+	row, err := factory.DB(ctx).InsertOne(t)
+	if int(row) == 0 {
+		err = errors.New("no data has changed.")
+		return
+	}
+	return
+}
+
+func (GreenStoreGroup) GetAll(ctx context.Context, sortby, order []string, offset, limit int) (totalCount int64, items []GreenStoreGroup, err error) {
+	queryBuilder := func() *xorm.Session {
+		q := factory.DB(ctx)
+		if err := setSortOrder(q, sortby, order); err != nil {
+			factory.Logger(ctx).Error(err)
+		}
+		return q
+	}
+
+	errc := make(chan error)
+	go func() {
+		V, err := queryBuilder().Count(&GreenStoreGroup{})
+		if err != nil {
+			errc <- err
+			return
+		}
+		totalCount = V
+
+		if err := queryBuilder().Limit(limit, offset).Find(&items); err != nil {
+			errc <- err
+			return
+		}
+		errc <- nil
+	}()
+
+	if err := <-errc; err != nil {
+		return 0, nil, err
+	}
+	if err := <-errc; err != nil {
+		return 0, nil, err
+	}
+	return
+}
+
+func (GreenStoreGroup) GetById(ctx context.Context, id int64) (has bool, greenStoreGroup *GreenStoreGroup, err error) {
+	greenStoreGroup = &GreenStoreGroup{}
+	has, err = factory.DB(ctx).ID(id).Get(greenStoreGroup)
+	return
+}
+
+func (t *GreenStoreGroup) Update(ctx context.Context, id int64) (err error) {
+	row, err := factory.DB(ctx).ID(id).Update(t)
+	if int(row) == 0 {
+		err = errors.New("no data has changed.")
+		return
+	}
+	return
+}
+
+func (GreenStoreGroup) Delete(ctx context.Context, id int64) (err error) {
+	row, err := factory.DB(ctx).ID(id).Delete(&GreenStoreGroup{})
+	if int(row) == 0 {
+		err = errors.New("no data has changed.")
+		return
+	}
+	return
 }
