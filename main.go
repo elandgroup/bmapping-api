@@ -45,6 +45,7 @@ func main() {
 
 	controllers.TenancyStoreApiController{}.Init(e.Group("/v3/stores"))
 	controllers.IPayTypeApiController{}.Init(e.Group("/v3/admin/ipaytype"))
+	controllers.GreenStoreGroupApiController{}.Init(e.Group("/v3/admin/green/storegroup"))
 
 	e.Pre(middleware.RemoveTrailingSlash())
 	e.Use(middleware.Recover())
@@ -72,6 +73,7 @@ func main() {
 			return false
 		},
 	}))
+
 	//e.Renderer = echotpl.New()
 	e.Validator = &Validator{}
 
