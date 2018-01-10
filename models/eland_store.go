@@ -97,13 +97,6 @@ func (ElandStoreGroup) GetAll(ctx context.Context, sortby, order []string, offse
 	}()
 
 	go func() {
-		v, err := queryBuilder().Count(&ElandStoreGroup{})
-		if err != nil {
-			errc <- err
-			return
-		}
-		totalCount = v
-
 		if err := queryBuilder().Limit(limit, offset).Find(&items); err != nil {
 			errc <- err
 			return
