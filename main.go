@@ -46,6 +46,7 @@ func main() {
 	controllers.TenancyStoreApiController{}.Init(e.Group("/v3/stores"))
 	controllers.IPayTypeApiController{}.Init(e.Group("/v3/admin/ipaytype"))
 	controllers.GreenStoreGroupApiController{}.Init(e.Group("/v3/admin/green/storegroup"))
+	controllers.GreenStoreApiController{}.Init(e.Group("/v3/admin/green/store"))
 
 	e.Pre(middleware.RemoveTrailingSlash())
 	e.Use(middleware.Recover())
