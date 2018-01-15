@@ -30,15 +30,7 @@ func (g ElandStoreApiController) Get(c echo.Context) error {
 	case "all":
 		return g.GetAll(c)
 	default:
-		ipayTypeId := c.QueryParam("ipayTypeId")
-		switch ipayTypeId {
-		case "1":
-			return g.GetEIdOffline(c)
-		case "2":
-			return g.GetEIdOnline(c)
-		case "3":
-			return g.GetEIdOnline(c)
-		}
+		return g.GetEId(c)
 	}
 	return ReturnApiFail(c, http.StatusBadRequest, ApiErrorParameter, nil)
 }
@@ -193,7 +185,7 @@ func (ElandStoreApiController) GetEIdOffline(c echo.Context) error {
 	return ReturnApiSucc(c, http.StatusOK, eId)
 }
 
-func (ElandStoreApiController) GetEIdOnline(c echo.Context) error {
+func (ElandStoreApiController) GetEId(c echo.Context) error {
 	code := c.QueryParam("code")
 	group_code := c.QueryParam("groupCode")
 	country_id, err := strconv.ParseInt(c.QueryParam("countryId"), 10, 64)
