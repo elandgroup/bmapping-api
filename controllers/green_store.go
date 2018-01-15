@@ -27,43 +27,7 @@ func (e GreenStoreApiController) Get(c echo.Context) error {
 	return ReturnApiFail(c, http.StatusBadRequest, ApiErrorParameter, nil)
 }
 
-func (g GreenStoreApiController) GetEId(c echo.Context) error {
-	ipayTypeId := c.QueryParam("ipayTypeId")
-	switch ipayTypeId {
-	case "1":
-		return g.GetEIdOffline(c)
-	case "2":
-		return g.GetEIdOnline(c)
-	}
-	return ReturnApiFail(c, http.StatusBadRequest, ApiErrorParameter, nil)
-}
-
-func (GreenStoreApiController) GetEIdOffline(c echo.Context) error {
-	code := c.QueryParam("code")
-	ipayTypeId, err := strconv.ParseInt(c.QueryParam("ipayTypeId"), 10, 64)
-	if err != nil {
-		return ReturnApiFail(c, http.StatusBadRequest, ApiErrorParameter, err)
-	}
-	key := fmt.Sprintf("green%v|%v",
-		code,
-		c.QueryParam("ipayTypeId"),
-	)
-	currentCache := (*relaxmid.Config(c.Request().Context()))["|cache"].(*cache.Cache)
-	if eId, found := currentCache.Get(key); found {
-		return ReturnApiSucc(c, http.StatusOK, eId)
-	}
-	has, eId, _, err := models.GetEIdByCode(c.Request().Context(), code, ipayTypeId)
-	if err != nil {
-		return ReturnApiFail(c, http.StatusInternalServerError, ApiErrorDB, err)
-	}
-	if !has {
-		return ReturnApiFail(c, http.StatusNotFound, ApiErrorNotFound, nil)
-	}
-	currentCache.Set(key, eId, cache.NoExpiration)
-	return ReturnApiSucc(c, http.StatusOK, eId)
-}
-
-func (GreenStoreApiController) GetEIdOnline(c echo.Context) error {
+func (GreenStoreApiController) GetEId(c echo.Context) error {
 	code := c.QueryParam("code")
 	ipayTypeId, err := strconv.ParseInt(c.QueryParam("ipayTypeId"), 10, 64)
 	if err != nil {
