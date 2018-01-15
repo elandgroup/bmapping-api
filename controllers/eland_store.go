@@ -36,6 +36,8 @@ func (g ElandStoreApiController) Get(c echo.Context) error {
 			return g.GetEIdOffline(c)
 		case "2":
 			return g.GetEIdOnline(c)
+		case "3":
+			return g.GetEIdOnline(c)
 		}
 	}
 	return ReturnApiFail(c, http.StatusBadRequest, ApiErrorParameter, nil)
