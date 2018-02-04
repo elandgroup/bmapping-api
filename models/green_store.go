@@ -41,6 +41,88 @@ func GetEIdByCode(ctx context.Context, code string, ipayTypeId int64) (has bool,
 	return
 }
 
+/**↓ greenStore CRUD ↓**/
+func (GreenStore) InsertMany(ctx context.Context, greenStores *[]GreenStore) (err error) {
+	row, err := factory.DB(ctx).Insert(greenStores)
+	if int(row) == 0 {
+		err = errors.New("no data has changed.")
+		return
+	}
+	return
+}
+
+func (c *GreenStore) InsertOne(ctx context.Context) (err error) {
+	row, err := factory.DB(ctx).InsertOne(c)
+	if int(row) == 0 {
+		err = errors.New("no data has changed.")
+		return
+	}
+	return
+}
+
+func (GreenStore) GetAll(ctx context.Context, sortby, order []string, offset, limit int) (totalCount int64, items []GreenStore, err error) {
+	queryBuilder := func() *xorm.Session {
+		q := factory.DB(ctx)
+		if err := setSortOrder(q, sortby, order); err != nil {
+			factory.Logger(ctx).Error(err)
+		}
+		return q
+	}
+
+	errc := make(chan error)
+	go func() {
+		v, err := queryBuilder().Count(&GreenStore{})
+		if err != nil {
+			errc <- err
+			return
+		}
+		totalCount = v
+		errc <- nil
+
+	}()
+
+	go func() {
+		if err := queryBuilder().Limit(limit, offset).Find(&items); err != nil {
+			errc <- err
+			return
+		}
+		errc <- nil
+	}()
+
+	if err := <-errc; err != nil {
+		return 0, nil, err
+	}
+	if err := <-errc; err != nil {
+		return 0, nil, err
+	}
+	return
+}
+
+func (GreenStore) GetById(ctx context.Context, id int64) (has bool, greenStore *GreenStore, err error) {
+	greenStore = &GreenStore{}
+	has, err = factory.DB(ctx).ID(id).Get(greenStore)
+	return
+}
+
+func (t *GreenStore) Update(ctx context.Context, id int64) (err error) {
+	row, err := factory.DB(ctx).ID(id).Update(t)
+	if int(row) == 0 {
+		err = errors.New("no data has changed.")
+		return
+	}
+	return
+}
+
+func (GreenStore) Delete(ctx context.Context, id int64) (err error) {
+	row, err := factory.DB(ctx).ID(id).Delete(&GreenStore{})
+	if int(row) == 0 {
+		err = errors.New("no data has changed.")
+		return
+	}
+	return
+}
+/**  ↑GreenStore UCRD↑  **/
+
 type GreenMappingStoreIpay struct {
 	Id         int64
 	StoreId    int64
