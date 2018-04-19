@@ -4,6 +4,7 @@ import (
 	"bmapping-api/models"
 	"flag"
 	"log"
+	"net/http"
 	"os"
 	"strings"
 
@@ -30,7 +31,7 @@ func main() {
 	if err := configutil.Read(*appEnv, &c); err != nil {
 		panic(err)
 	}
-	db, err := initDB(c.Database.Driver, *connEnv)
+	db, err := initDB("mysql", *connEnv)
 	if err != nil {
 		panic(err)
 	}
@@ -42,6 +43,13 @@ func main() {
 	}
 
 	e := echo.New()
+	e.GET("/ping", func(c echo.Context) error {
+		return c.String(http.StatusOK, "pong")
+	})
+	e.GET("/swagger", func(c echo.Context) error {
+		return c.File("./swagger.yml")
+	})
+	e.Static("/docs", "./swagger-ui")
 
 	controllers.TenancyStoreApiController{}.Init(e.Group("/v3/stores"))
 	controllers.IPayTypeApiController{}.Init(e.Group("/v3/admin/ipaytypes"))
@@ -63,6 +71,8 @@ func main() {
 		Skipper: func(c echo.Context) bool {
 			ignore := []string{
 				"/ping",
+				"/docs",
+				"/swagger",
 				"/v3/stores",
 			}
 			for _, i := range ignore {

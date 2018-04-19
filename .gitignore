@@ -16,3 +16,4 @@
 debug
 tmp
 *.exe~
+swagger-ui

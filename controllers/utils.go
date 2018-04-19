@@ -1,12 +1,13 @@
 package controllers
 
 import (
-	"fmt"
+	"context"
 	"net/http"
 	"net/url"
 	"strings"
 
-	"bmapping-api/factory"
+	"github.com/fatih/structs"
+	"github.com/pangpanglabs/goutils/behaviorlog"
 
 	"github.com/labstack/echo"
 )
@@ -49,12 +50,24 @@ var (
 	ApiErrorMissToken          = ApiError{Code: 10012, Message: "Miss token"}
 	ApiErrorVersion            = ApiError{Code: 10013, Message: "API version %s invalid"}
 	ApiErrorNotFound           = ApiError{Code: 10014, Message: "Resource not found"}
+	ApiErrorHasExist           = ApiError{Code: 10015, Message: "Resource has existed"}
+	ApiErrorNotChanged         = ApiError{Code: 10016, Message: "Resource has not changed"}
 	// Business Error
 	ApiErrorUserNotExists = ApiError{Code: 20001, Message: "User does not exists"}
 	ApiErrorPassword      = ApiError{Code: 20002, Message: "Password error"}
 )
 
-func ReturnApiFail(c echo.Context, status int, apiError ApiError, err error, v ...interface{}) error {
+func ReturnApiFail(c echo.Context, status int, apiError ApiError, err error, v ...map[string]interface{}) error {
+	logContext := behaviorlog.FromCtx(c.Request().Context())
+	if logContext != nil {
+		if err != nil {
+			logContext.WithError(err)
+		}
+		if len(v) > 0 {
+			logContext.WithBizAttrs(v[0])
+		}
+	}
+
 	str := ""
 	if err != nil {
 		str = err.Error()
@@ -63,25 +76,62 @@ func ReturnApiFail(c echo.Context, status int, apiError ApiError, err error, v .
 		Success: false,
 		Error: ApiError{
 			Code:    apiError.Code,
-			Message: fmt.Sprintf(apiError.Message, v...),
+			Message: apiError.Message,
 			Details: str,
 		},
 	})
 }
 
 func ReturnApiSucc(c echo.Context, status int, result interface{}) error {
-	req := c.Request()
-	if req.Method == "POST" || req.Method == "PUT" || req.Method == "DELETE" {
-		err := factory.DB(req.Context()).Commit()
-		if err != nil {
-			return ReturnApiFail(c, http.StatusInternalServerError, ApiErrorDB, err)
-		}
+	if status == 204 {
+		return c.NoContent(status)
 	}
 
 	return c.JSON(status, ApiResult{
 		Success: true,
 		Result:  result,
 	})
+}
+
+func ReturnApiListSucc(c echo.Context, status int, totalCount int64, items interface{}) error {
+	if status == 204 {
+		return c.NoContent(status)
+	}
+	return c.JSON(status, ApiResult{
+		Success: true,
+		Result:  ArrayResult{TotalCount: totalCount, Items: items},
+	})
+}
+
+type UrlInfo struct {
+	ControllerName string
+	ApiName        string //spring,sf,best
+	Method         string //GET,POST
+	Uri            string
+	ResponseStatus int
+	Struct         *structs.Struct
+	Err            error
+}
+
+func PrintApiBehaviorError(c context.Context, urlInfo UrlInfo) {
+	logContext := behaviorlog.FromCtx(c)
+	if logContext != nil {
+		logClone := logContext.Clone()
+		if urlInfo.Err != nil {
+			logClone.WithError(urlInfo.Err)
+		}
+		logClone.Controller = urlInfo.ControllerName
+		logClone.Params = map[string]interface{}{}
+		urlInfo.Struct.TagName = "json"
+		logClone.WithCallURLInfo(
+			urlInfo.Method,
+			urlInfo.Uri,
+			urlInfo.Struct.Map(),
+			urlInfo.ResponseStatus,
+		).Log(urlInfo.ApiName)
+		logContext.Params = map[string]interface{}{}
+	}
+
 }
 
 func setFlashMessage(c echo.Context, m map[string]string) {
