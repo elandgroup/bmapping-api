@@ -13,8 +13,11 @@ FROM  alpine:3.6
 RUN apk --no-cache add ca-certificates
 WORKDIR /go/bin/
 # copy config file to image (like config.json or config.staging.json)
-COPY --from=builder /go/src/bmapping-api/config*.yml ./
+COPY --from=builder /go/src/bmapping-api/*.yml ./
+COPY --from=builder /swagger-ui/ ./swagger-ui/
+COPY --from=builder /go/src/bmapping-api/index.html ./swagger-ui/
 # copy execute file to image
 COPY --from=builder /go/bin/ ./
 EXPOSE 8080
 CMD ["./bmapping-api"]
+

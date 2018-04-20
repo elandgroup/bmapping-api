@@ -1,0 +1,112 @@
+swagger: '2.0'
+info:
+  title: p2-shop API
+  description: |
+  version: "2.0.0"
+host: staging.p2shop.com.cn/bmapping
+schemes:
+  - https
+produces:
+  - application/json
+securityDefinitions:
+  Bearer:
+    type: apiKey
+    name: Authorization
+    in: header
+paths:
+  /v3/stores:
+    get:
+      summary: seach stores
+      description: |
+      tags:
+        - stores
+      parameters:
+        - name: groupCode
+          in: query
+          description: |
+          required: false
+          type: string
+        - name: countryId
+          in: query
+          description: |
+          required: false
+          type: integer
+        - name: code
+          in: query
+          description: |
+          required: true
+          type: string
+        - name: ipayTypeId
+          in: query
+          description: 1:offline,2:online,3:wx mini program
+          required: true
+          type: integer
+        - name: tenancy
+          in: query
+          description: green,eland
+          required: true
+          type: string
+      responses:
+        200:
+          description: |
+          schema:
+            $ref: '#/definitions/ArrayResult'
+        default:
+          description: error
+          schema:
+            $ref: '#/definitions/ErrorResult'
+definitions:
+  Error:
+    type: object
+    properties:
+      code:
+        type: integer
+        format: int32
+      message:
+        type: string
+  Item:
+    type: object
+  ErrorResult:
+    type: object
+    properties:
+      success:
+        type: boolean
+        default: false
+      error:
+        $ref: '#/definitions/Error'
+  ItemResult:
+    type: object
+    properties:
+      success:
+        type: boolean
+        default: true
+      result:
+        $ref: '#/definitions/Item'
+  ArrayResult:
+    type: object
+    properties:
+      success:
+        type: boolean
+        default: true
+      result:
+        type: array
+        items:
+          $ref: '#/definitions/Item'
+  PagingResult:
+    type: object
+    properties:
+      success:
+        type: boolean
+        default: true
+      result:
+        $ref: '#/definitions/Paging'
+  Paging:
+    type: object
+    properties:
+      totalCount:
+        type: integer
+        format: int32
+      items:
+        type: array
+        items:
+          $ref: '#/definitions/Item'

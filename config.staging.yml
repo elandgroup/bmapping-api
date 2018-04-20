@@ -1,20 +1,13 @@
-database:
-  driver: mysql
-  connection: 
-  logger:
-    # kafka:
-        #   brokers:
-        #     - steamer-01.srvs.cloudkafka.com:9093
-        #     - steamer-02.srvs.cloudkafka.com:9093
-        #     - steamer-03.srvs.cloudkafka.com:9093
-        #   topic: labs
-  behaviorLog:
-     kafka:
-        # brokers:
-        #   - steamer-01.srvs.cloudkafka.com:9093
-        #   - steamer-02.srvs.cloudkafka.com:9093
-        #   - steamer-03.srvs.cloudkafka.com:9093
-        # topic: labs
+logger:
+  kafka:
+        brokers:
+          - 10.173.208.142:9092
+        topic: logger
+behaviorLog:
+    kafka:
+      brokers:
+        - 10.173.208.142:9092
+      topic: behaviorlog
 debug: true
 service: bmapping-api
 httpport: 8080
